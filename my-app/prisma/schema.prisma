@@ -1,0 +1,125 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id
+  email     String   @unique
+  fullname  String
+  clerkId   String
+  type      String
+  createdAt DateTime
+  updatedAt DateTime
+  stripeId  String
+}
+
+model Billings {
+  id      String @id
+  plan    Plans
+  credits Int
+  userId  String
+}
+
+model Campaign {
+  id        String   @id
+  name      String
+  customers String[]
+  userId    String
+  createdAt DateTime
+}
+
+model Domain {
+  id         String @id
+  name       String
+  userId     String
+  icon       String
+  campaignId String
+}
+
+model Chatbot {
+  id             String @id
+  welcomeMessage String
+  icon           String
+  domainId       String
+  background     String
+  textColor      String
+  helpdesk       String
+}
+
+model Helpdesk {
+  id       String @id
+  question String
+  answer   String
+  domainId String
+}
+
+model FilterQuestions {
+  id       String @id
+  question String
+  answered String
+  domainId String
+}
+
+model Customer {
+  id       String @id
+  email    String
+  domainId String
+}
+
+model CustomerResponses {
+  id         String @id
+  question   String
+  answered   String
+  customerId String
+}
+
+model Product {
+  id        String   @id
+  name      String
+  price     Int
+  image     String
+  domainId  String
+  createdAt DateTime
+}
+
+model ChatRoom {
+  id         String   @id
+  live       Boolean
+  mailed     Boolean
+  createdAt  DateTime
+  updatedAt  DateTime
+  customerId String
+}
+
+model ChatMessage {
+  id         String   @id
+  message    String
+  createdAt  DateTime
+  updatedAt  DateTime
+  chatRoomId String
+  role       String
+  seen       Boolean
+}
+
+model Bookings {
+  id         String   @id
+  date       DateTime
+  slot       String
+  email      String
+  customerId String
+  createdAt  DateTime
+  domainId   String
+}
+
+enum Plans {
+  FREE
+  BASIC
+  PRO
+  ENTERPRISE
+}
