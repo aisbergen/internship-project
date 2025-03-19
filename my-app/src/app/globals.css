@@ -70,3 +70,8 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+.greeting {
+  margin-top: 30%;
+  margin-right: 50%;
+}
