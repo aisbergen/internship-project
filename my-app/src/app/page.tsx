@@ -1,7 +1,9 @@
-export default function HomePage() {
+import { SignInButton } from "@clerk/nextjs";
+import { currentUser } from "@clerk/nextjs/server";
+
+
+export default function Page() {
   return (
-    <main className="flex justify-center items-center min-h-screen">
-      <h1>Welcome to My App</h1>
-    </main>
+    <h1>Welcome to My App, sign in</h1>
   );
 }
