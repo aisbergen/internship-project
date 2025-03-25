@@ -14,7 +14,7 @@ const adapter = new PrismaNeon(pool);
 export const prisma =
   globalForPrisma.prisma || new PrismaClient();
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+//if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 if (process.env.NODE_ENV === 'development') globalForPrisma.prisma = prisma;
 
 export default prisma;

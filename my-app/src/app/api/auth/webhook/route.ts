@@ -1,61 +1,67 @@
-import { Webhook } from 'svix'
-import { headers } from 'next/headers'
-import { WebhookEvent } from '@clerk/nextjs/server'
+import { Webhook } from 'svix';
+import { headers } from 'next/headers';
+import { WebhookEvent } from '@clerk/nextjs/server';
+import { createUser } from '@/actions/userActions';
+import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
-  const SIGNING_SECRET = process.env.SIGNING_SECRET
-
-
+  const SIGNING_SECRET = process.env.SIGNING_SECRET;
   if (!SIGNING_SECRET) {
-    throw new Error('Error: Please add SIGNING_SECRET from Clerk Dashboard to .env or .env')
+    throw new Error('Missing SIGNING_SECRET in .env');
   }
-
-  // Create new Svix instance with secret
-  const wh = new Webhook(SIGNING_SECRET)
 
   // Get headers
   const headerPayload = await headers()
   const svix_id = headerPayload.get('svix-id')
   const svix_timestamp = headerPayload.get('svix-timestamp')
   const svix_signature = headerPayload.get('svix-signature')
-
-  // If there are no headers, error out
+  
   if (!svix_id || !svix_timestamp || !svix_signature) {
-    return new Response('Error: Missing Svix headers', {
-      status: 400,
-    })
+    return new Response('Missing Svix headers', { status: 400 });
   }
 
-  // Get body
-  const payload = await req.json()
-  const body = JSON.stringify(payload)
+  const payload = await req.text(); // ✅ must use raw body
+  const wh = new Webhook(SIGNING_SECRET);
 
-  let evt: WebhookEvent
-
-  // Verify payload with headers
+  let evt: WebhookEvent;
   try {
-    evt = wh.verify(body, {
+    evt = wh.verify(payload, {
       'svix-id': svix_id,
       'svix-timestamp': svix_timestamp,
       'svix-signature': svix_signature,
-    }) as WebhookEvent
+    }) as WebhookEvent;
   } catch (err) {
-    console.error('Error: Could not verify webhook:', err)
-    return new Response('Error: Verification error', {
-      status: 400,
-    })
+    console.error('❌ Webhook signature verification failed:', err);
+    return new Response('Invalid signature', { status: 400 });
   }
 
-  // Do something with payload
-  // For this guide, log payload to console
-  const { id } = evt.data
-  const eventType = evt.type
-  if (evt.type === 'user.created') {
-    console.log('userId:', evt.data.id)
+  const eventType = evt.type;
+
+  if (eventType === 'user.created') {
+    const user = evt.data;
+
+    const email = user.email_addresses?.[0]?.email_address;
+    const fullname = `${user.first_name ?? ''} ${user.last_name ?? ''}`.trim();
+
+    if (!email || !user.id) {
+      return new Response('Invalid user payload', { status: 400 });
+    }
+
+    try {
+      await createUser({
+        clerkId: user.id,
+        email,
+        fullname,
+        type: 'user',
+        stripeId: '', // 🔁 Set this later with Stripe integration
+      });
+
+      return NextResponse.json({ message: '✅ User synced to DB' }, { status: 201 });
+    } catch (err) {
+      console.error('❌ Failed to save user:', err);
+      return NextResponse.json({ error: 'Failed to create user' }, { status: 500 });
+    }
   }
 
-  
-  
-
-  return new Response('Webhook received', { status: 200 })
+  return NextResponse.json({ message: 'No handler for this event' }, { status: 200 });
 }
