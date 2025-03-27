@@ -71,7 +71,12 @@ body {
   }
 }
 
-.greeting {
-  margin-top: 30%;
-  margin-right: 50%;
+.welcome-msg {
+  @apply text-center text-2xl font-bold text-primary-foreground;
+  color: var(--primary-foreground);
+  font-size: 15px;
+}
+
+.name {
+  padding: 20px 10px;
 }

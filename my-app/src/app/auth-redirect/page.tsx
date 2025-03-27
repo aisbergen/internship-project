@@ -6,6 +6,6 @@ const username = user?.username
 
 export default function Page() {
   return (
-    <h1>Welcome to My App, {username}</h1>
+    <h1 className="welcome-msg">Welcome to My App, {username}</h1>
   );
 }
